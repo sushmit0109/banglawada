@@ -13,7 +13,7 @@
 <!-- TOP STORY -->
 {% set top = stories[0] %}
 <div class="section-top">
-  <a href="/article/{{ top.slug }}/" class="hero-card hero-card--sm">
+  <a href="{{ base_url }}article/{{ top.slug }}/" class="hero-card hero-card--sm">
     {% if top._image_url %}
     <div class="hero-img-wrap">
       <img src="{{ top._image_url }}" alt="{{ top.bn_headline }}" loading="eager">
@@ -31,7 +31,7 @@
 {% if stories|length > 1 %}
 <div class="card-grid card-grid--3">
   {% for s in stories[1:] %}
-  <a href="/article/{{ s.slug }}/" class="card">
+  <a href="{{ base_url }}article/{{ s.slug }}/" class="card">
     {% if s._image_url %}
     <div class="card-img-wrap">
       <img src="{{ s._image_url }}" alt="{{ s.bn_headline }}" loading="lazy">

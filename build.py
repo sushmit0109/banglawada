@@ -12,6 +12,7 @@ Usage:
     python build.py --limit 20   # cap stories fetched per section
 """
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -20,6 +21,9 @@ API_BASE   = "https://www.dailywaadaa.com/api/v1"
 IMAGE_CDN  = "https://media.assettype.com"
 OUTPUT_DIR = Path("output")
 CACHE_DB   = Path("cache/translations.db")
+# Set SITE_BASE env var when deploying to a GitHub Pages subdirectory.
+# e.g. export SITE_BASE=/banglawada/  (must start and end with /)
+SITE_BASE  = os.environ.get("SITE_BASE", "/")
 
 SECTIONS = [
     {"slug": "bangladesh", "name": "Bangladesh", "bn": "বাংলাদেশ"},
@@ -51,7 +55,7 @@ def main():
 
     api       = QuintypeAPI(API_BASE, IMAGE_CDN)
     translator = Translator(CACHE_DB)
-    generator  = SiteGenerator(OUTPUT_DIR, translator, IMAGE_CDN, SECTIONS)
+    generator  = SiteGenerator(OUTPUT_DIR, translator, IMAGE_CDN, SECTIONS, SITE_BASE)
 
     # ── 1. Fetch latest stories for homepage ──────────────────────────────────
     print(f"[build] Fetching latest {args.limit} stories …")

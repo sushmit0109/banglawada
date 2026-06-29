@@ -10,10 +10,10 @@
 
     <!-- BREADCRUMB -->
     <nav class="breadcrumb">
-      <a href="/">সর্বশেষ</a>
+      <a href="{{ base_url }}">সর্বশেষ</a>
       {% if story.bn_section %}
       <span>›</span>
-      <a href="/{{ story._section_slug }}/">{{ story.bn_section }}</a>
+      <a href="{{ base_url }}{{ story._section_slug }}/">{{ story.bn_section }}</a>
       {% endif %}
     </nav>
 
@@ -106,7 +106,7 @@
       <div class="sidebar-block-header"><h4>বিভাগ</h4></div>
       <ul class="sidebar-list">
         {% for sec in all_sections %}
-        <li><a href="/{{ sec.slug }}/">{{ sec.bn }}</a></li>
+        <li><a href="{{ base_url }}{{ sec.slug }}/">{{ sec.bn }}</a></li>
         {% endfor %}
       </ul>
     </div>

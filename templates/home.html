@@ -7,7 +7,7 @@
 {% if featured %}
 {% set h = featured[0] %}
 <section class="hero-section">
-  <a href="/article/{{ h.slug }}/" class="hero-card">
+  <a href="{{ base_url }}article/{{ h.slug }}/" class="hero-card">
     {% if h._image_url %}
     <div class="hero-img-wrap">
       <img src="{{ h._image_url }}" alt="{{ h.bn_headline }}" loading="eager">
@@ -32,7 +32,7 @@
 <section class="secondary-section">
   <div class="card-grid card-grid--3">
     {% for s in secondary %}
-    <a href="/article/{{ s.slug }}/" class="card">
+    <a href="{{ base_url }}article/{{ s.slug }}/" class="card">
       {% if s._image_url %}
       <div class="card-img-wrap">
         <img src="{{ s._image_url }}" alt="{{ s.bn_headline }}" loading="lazy">
@@ -56,7 +56,7 @@
     <div class="section-header"><h3>সর্বশেষ খবর</h3></div>
     <div class="list-feed">
       {% for s in rest %}
-      <a href="/article/{{ s.slug }}/" class="list-card">
+      <a href="{{ base_url }}article/{{ s.slug }}/" class="list-card">
         {% if s._image_url %}
         <div class="list-img-wrap">
           <img src="{{ s._image_url }}" alt="{{ s.bn_headline }}" loading="lazy">
@@ -80,17 +80,17 @@
     {% if block.stories %}
     <div class="sidebar-block">
       <div class="sidebar-block-header">
-        <h4><a href="/{{ block.slug }}/">{{ block.bn }}</a></h4>
+        <h4><a href="{{ base_url }}{{ block.slug }}/">{{ block.bn }}</a></h4>
       </div>
       <ul class="sidebar-list">
         {% for s in block.stories[:5] %}
         <li>
-          <a href="/article/{{ s.slug }}/">{{ s.bn_headline }}</a>
+          <a href="{{ base_url }}article/{{ s.slug }}/">{{ s.bn_headline }}</a>
           <span class="meta">{{ s.bn_date }}</span>
         </li>
         {% endfor %}
       </ul>
-      <a href="/{{ block.slug }}/" class="more-link">আরও দেখুন →</a>
+      <a href="{{ base_url }}{{ block.slug }}/" class="more-link">আরও দেখুন →</a>
     </div>
     {% endif %}
     {% endfor %}
@@ -102,12 +102,12 @@
 {% if block.stories %}
 <section class="section-strip">
   <div class="section-header">
-    <h2><a href="/{{ block.slug }}/">{{ block.bn }}</a></h2>
-    <a href="/{{ block.slug }}/" class="more-link">সব দেখুন</a>
+    <h2><a href="{{ base_url }}{{ block.slug }}/">{{ block.bn }}</a></h2>
+    <a href="{{ base_url }}{{ block.slug }}/" class="more-link">সব দেখুন</a>
   </div>
   <div class="card-grid card-grid--4">
     {% for s in block.stories %}
-    <a href="/article/{{ s.slug }}/" class="card card--sm">
+    <a href="{{ base_url }}article/{{ s.slug }}/" class="card card--sm">
       {% if s._image_url %}
       <div class="card-img-wrap">
         <img src="{{ s._image_url }}" alt="{{ s.bn_headline }}" loading="lazy">

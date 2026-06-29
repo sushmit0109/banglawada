@@ -20,11 +20,12 @@ def _bn_date(ts_ms: Optional[int]) -> str:
 
 
 class SiteGenerator:
-    def __init__(self, output_dir: Path, translator, image_cdn: str, sections: list):
+    def __init__(self, output_dir: Path, translator, image_cdn: str, sections: list, base_url: str = "/"):
         self.out = output_dir
         self.tr = translator
         self.image_cdn = image_cdn
         self.sections = sections
+        self.base_url = base_url.rstrip("/") + "/"  # always ends with /
         self.env = Environment(
             loader=FileSystemLoader(Path(__file__).parent.parent / "templates"),
             autoescape=True,
@@ -32,6 +33,7 @@ class SiteGenerator:
         self.env.globals.update(
             image_cdn=image_cdn,
             all_sections=sections,
+            base_url=self.base_url,
             last_updated=datetime.now(timezone.utc).strftime("%-d %B %Y, %H:%M UTC"),
         )
         self.env.filters["bn_date"] = _bn_date

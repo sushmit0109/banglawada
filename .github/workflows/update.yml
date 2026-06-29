@@ -10,7 +10,7 @@ on:
       full_rebuild:
         description: 'Full rebuild (re-generate all article pages)'
         required: false
-        default: 'false'
+        default: false
         type: boolean
 
 # Grant write permission to push to gh-pages
@@ -47,12 +47,16 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Build site (incremental)
+        env:
+          SITE_BASE: /banglawada/
         run: |
           if [ "${{ github.event.inputs.full_rebuild }}" = "true" ]; then
             python build.py --full
           else
             python build.py
           fi
+          # Prevent GitHub Pages Jekyll processing
+          touch output/.nojekyll
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
