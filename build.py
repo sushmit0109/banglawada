@@ -76,16 +76,9 @@ def main():
             limit=args.limit, section_id=sec["id"]
         )
 
-    # ── 3. Generate homepage ──────────────────────────────────────────────────
-    print("[build] Generating homepage …")
-    generator.generate_home(home_stories, section_stories)
-
-    # ── 4. Generate section pages ─────────────────────────────────────────────
-    for sec in SECTIONS:
-        print(f"[build] Generating section page: {sec['name']} …")
-        generator.generate_section(sec, section_stories.get(sec["slug"], []))
-
-    # ── 5. Generate article pages (parallel) ─────────────────────────────────
+    # ── 3. Generate article pages (parallel) ─────────────────────────────────
+    # Articles are built FIRST so all headlines are cached before the homepage
+    # and section pages are rendered (they pull from the same cache).
     seen_ids: set[str] = set()
     all_stories = list(home_stories)
     for stories in section_stories.values():
@@ -126,6 +119,15 @@ def main():
                 skipped += 1
             else:
                 errors += 1
+
+    # ── 4. Generate homepage (all headlines now cached from article builds) ───
+    print("[build] Generating homepage …")
+    generator.generate_home(home_stories, section_stories)
+
+    # ── 5. Generate section pages ─────────────────────────────────────────────
+    for sec in SECTIONS:
+        print(f"[build] Generating section page: {sec['name']} …")
+        generator.generate_section(sec, section_stories.get(sec["slug"], []))
 
     # ── 6. Copy static assets ─────────────────────────────────────────────────
     generator.copy_static()

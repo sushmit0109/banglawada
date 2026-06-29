@@ -85,18 +85,27 @@ class Translator:
         return result
 
     def translate_html(self, html: str) -> str:
-        """Translate visible text inside an HTML snippet, preserving tags."""
+        """Translate visible text inside an HTML snippet, preserving tags.
+
+        Extracts text nodes with BS4, translates them (batch for Claude,
+        sequential for Google), then splices translations back in.
+        This avoids sending huge HTML blobs to Claude which causes timeouts.
+        """
         if not html:
             return html
-        if self.use_claude:
-            return self._claude_translate_html(html)
         try:
             from bs4 import BeautifulSoup
             soup = BeautifulSoup(html, "html.parser")
-            for node in soup.find_all(string=True):
-                stripped = node.strip()
-                if stripped:
-                    node.replace_with(self.translate(stripped))
+            nodes = [n for n in soup.find_all(string=True) if n.strip()]
+            if not nodes:
+                return html
+            texts = [n.strip() for n in nodes]
+            if self.use_claude:
+                translated = self.translate_batch(texts)
+            else:
+                translated = [self.translate(t) for t in texts]
+            for node, trans in zip(nodes, translated):
+                node.replace_with(trans)
             return str(soup.body or soup)
         except Exception as e:
             print(f"[Translator] HTML parse error: {e}")

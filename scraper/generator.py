@@ -30,11 +30,16 @@ class SiteGenerator:
             loader=FileSystemLoader(Path(__file__).parent.parent / "templates"),
             autoescape=True,
         )
+        dt = datetime.now(timezone.utc)
+        bn_last_updated = (
+            f"{dt.day} {BENGALI_MONTHS[dt.month - 1]} {dt.year},"
+            f" {dt.hour:02d}:{dt.minute:02d} UTC"
+        )
         self.env.globals.update(
             image_cdn=image_cdn,
             all_sections=sections,
             base_url=self.base_url,
-            last_updated=datetime.now(timezone.utc).strftime("%-d %B %Y, %H:%M UTC"),
+            last_updated=bn_last_updated,
         )
         self.env.filters["bn_date"] = _bn_date
 
