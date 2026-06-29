@@ -14,6 +14,7 @@ Usage:
 import argparse
 import os
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 # ── Configuration ──────────────────────────────────────────────────────────────
@@ -39,8 +40,9 @@ SECTIONS = [
 
 def main():
     parser = argparse.ArgumentParser(description="BanglaWada static site builder")
-    parser.add_argument("--full",  action="store_true", help="Rebuild all article pages")
-    parser.add_argument("--limit", type=int, default=20, help="Stories per section (default 20)")
+    parser.add_argument("--full",       action="store_true", help="Rebuild all article pages")
+    parser.add_argument("--limit",      type=int, default=20, help="Stories per section (default 20)")
+    parser.add_argument("--use-claude", action="store_true", help="Use Claude API for translation (one-time high-quality rebuild)")
     args = parser.parse_args()
 
     OUTPUT_DIR.mkdir(exist_ok=True)
@@ -51,8 +53,12 @@ def main():
     from scraper.translator import Translator
     from scraper.generator  import SiteGenerator
 
+    use_claude = args.use_claude
+    if use_claude:
+        print("[build] Using Claude for translation (high-quality one-time rebuild)")
+
     api        = QuintypeAPI(API_BASE, IMAGE_CDN)
-    translator = Translator(CACHE_DB)
+    translator = Translator(CACHE_DB, use_claude=use_claude)
     generator  = SiteGenerator(OUTPUT_DIR, translator, IMAGE_CDN, SECTIONS, SITE_BASE)
 
     # ── 1. Fetch global latest stories for homepage hero/secondary ────────────
@@ -79,35 +85,47 @@ def main():
         print(f"[build] Generating section page: {sec['name']} …")
         generator.generate_section(sec, section_stories.get(sec["slug"], []))
 
-    # ── 5. Generate article pages (incremental) ───────────────────────────────
+    # ── 5. Generate article pages (parallel) ─────────────────────────────────
     seen_ids: set[str] = set()
     all_stories = list(home_stories)
     for stories in section_stories.values():
         all_stories.extend(stories)
 
-    generated = skipped = errors = 0
+    unique_stories = []
     for story in all_stories:
         sid = story["id"]
-        if sid in seen_ids:
-            continue
-        seen_ids.add(sid)
+        if sid not in seen_ids:
+            seen_ids.add(sid)
+            unique_stories.append(story)
 
+    def _build_one(story):
+        sid  = story["id"]
         slug = story.get("slug", sid)
         if not args.full and generator.article_exists(slug):
-            skipped += 1
-            continue
-
+            return "skip"
         print(f"[build] Article: {story.get('headline', sid)[:65]} …")
         full = api.get_story(sid)
-        if full:
-            try:
-                generator.generate_article(full)
+        if not full:
+            return "error"
+        try:
+            generator.generate_article(full)
+            return "ok"
+        except Exception as e:
+            print(f"[build] ERROR generating {slug}: {e}")
+            return "error"
+
+    workers = 4 if args.use_claude else 2
+    generated = skipped = errors = 0
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {pool.submit(_build_one, s): s for s in unique_stories}
+        for fut in as_completed(futures):
+            outcome = fut.result()
+            if outcome == "ok":
                 generated += 1
-            except Exception as e:
-                print(f"[build] ERROR generating {slug}: {e}")
+            elif outcome == "skip":
+                skipped += 1
+            else:
                 errors += 1
-        else:
-            errors += 1
 
     # ── 6. Copy static assets ─────────────────────────────────────────────────
     generator.copy_static()

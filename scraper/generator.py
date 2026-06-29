@@ -72,8 +72,76 @@ class SiteGenerator:
         print(f"[Gen] {section['slug']}/index.html")
 
     def generate_article(self, story: dict):
-        enriched = self._enrich(story)
-        enriched["bn_cards"] = self._translate_cards(story.get("cards", []))
+        # ── 1. Collect every translatable string into one flat list ────────────
+        texts: list = []
+
+        def add(val: str) -> int:
+            idx = len(texts)
+            texts.append(val or "")
+            return idx
+
+        headline_i    = add(story.get("headline"))
+        subheadline_i = add(story.get("subheadline"))
+
+        # Plan entries: (card_idx, elem_idx, field_name, text_idx_or_None, raw_html_if_deferred)
+        # "text" elements contain long HTML bodies → deferred to translate_html() to avoid
+        # batch timeout; all other fields are short strings and go into the batch.
+        plan: list = []
+        cards = story.get("cards", [])
+        for ci, card in enumerate(cards):
+            for ei, elem in enumerate(card.get("story-elements", [])):
+                etype = elem.get("type", "")
+                if etype == "text":
+                    # Deferred: long HTML handled outside the batch
+                    plan.append((ci, ei, "bn_html", None, elem.get("text", "")))
+                elif etype in ("title", "summary"):
+                    plan.append((ci, ei, "bn_text",        add(elem.get("text", "")), None))
+                elif etype == "bigfact":
+                    plan.append((ci, ei, "bn_text",        add(elem.get("text", "")),          None))
+                    plan.append((ci, ei, "bn_label",       add(elem.get("label", "") or ""),   None))
+                elif etype == "blockquote":
+                    plan.append((ci, ei, "bn_text",        add(elem.get("text", "")),                  None))
+                    plan.append((ci, ei, "bn_attribution", add(elem.get("attribution", "") or ""), None))
+                elif etype == "image":
+                    plan.append((ci, ei, "bn_title",       add(elem.get("title", "") or ""), None))
+
+        # ── 2. One batch call translates everything (cache-aware) ──────────────
+        translated = self.tr.translate_batch(texts)
+
+        # ── 3. Build enriched story dict ───────────────────────────────────────
+        enriched = dict(story)
+        enriched["bn_headline"]    = translated[headline_i]
+        enriched["bn_subheadline"] = translated[subheadline_i]
+        enriched["bn_date"]        = _bn_date(story.get("published-at"))
+        enriched["bn_section"]     = ""
+        for sec in self.sections:
+            if sec["slug"] == enriched.get("_section_slug"):
+                enriched["bn_section"] = sec["bn"]
+                break
+
+        # ── 4. Reconstruct cards with translated fields ────────────────────────
+        elem_fields: dict = {}  # (ci, ei) → {field: value}
+        for ci, ei, field, ti, raw_html in plan:
+            if ti is None:
+                # Long HTML body — translate node-by-node (handles caching internally)
+                value = self.tr.translate_html(raw_html)
+            else:
+                value = translated[ti]
+            elem_fields.setdefault((ci, ei), {})[field] = value
+
+        bn_cards = []
+        for ci, card in enumerate(cards):
+            new_elems = []
+            for ei, elem in enumerate(card.get("story-elements", [])):
+                e = dict(elem)
+                e.update(elem_fields.get((ci, ei), {}))
+                if elem.get("type") == "image":
+                    e["_image_url"] = self._elem_image_url(elem)
+                new_elems.append(e)
+            bn_cards.append({**card, "story-elements": new_elems})
+        enriched["bn_cards"] = bn_cards
+
+        # ── 5. Render ──────────────────────────────────────────────────────────
         html = self.env.get_template("article.html").render(story=enriched)
         slug = story.get("slug", story["id"])
         article_path = self.out / "article" / slug
