@@ -86,7 +86,7 @@ img { display: block; width: 100%; height: auto; object-fit: cover; }
 .top-secondary { display: flex; flex-direction: column; gap: .85rem; }
 
 .top-side-card {
-  display: grid; grid-template-columns: 110px 1fr; gap: .65rem;
+  display: grid; grid-template-columns: 1fr 100px; gap: .65rem;
   padding-bottom: .85rem; border-bottom: 1px solid var(--border);
 }
 .top-side-card:last-child { border-bottom: none; }
@@ -133,6 +133,56 @@ img { display: block; width: 100%; height: auto; object-fit: cover; }
 
 .see-all { font-size: .78rem; font-weight: 700; color: var(--red); }
 .see-all:hover { text-decoration: underline; }
+
+/* ============================================================
+   SECTION STRIP — 3-column magazine layout
+   ============================================================ */
+.strip-cols {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1.5fr;
+  gap: 1.5rem;
+}
+
+/* Col 1: featured card */
+.strip-lead {
+  display: block;
+  margin-bottom: .65rem;
+}
+.strip-lead-img { overflow: hidden; border-radius: var(--radius); }
+.strip-lead-img img { height: 195px; width: 100%; object-fit: cover; transition: transform .3s; }
+.strip-lead:hover .strip-lead-img img { transform: scale(1.04); }
+.strip-lead-body { padding: .5rem 0 0; }
+.strip-lead-body h3 {
+  font-size: .92rem; font-weight: 700; line-height: 1.42; color: var(--dark);
+}
+.strip-lead:hover .strip-lead-body h3 { color: var(--red); }
+
+/* Shared text list */
+.strip-list { list-style: none; }
+.strip-list li {
+  padding: .45rem 0;
+  border-top: 1px solid var(--border);
+}
+.strip-list li a {
+  display: block; font-size: .82rem; font-weight: 600; line-height: 1.4;
+  color: var(--dark); margin-bottom: .15rem;
+}
+.strip-list li a:hover { color: var(--red); }
+.strip-list .meta { font-size: .7rem; }
+
+/* Col 2: two medium cards */
+.strip-col-2 { display: flex; flex-direction: column; gap: 1rem; }
+.strip-card { display: block; }
+.strip-card-img { overflow: hidden; border-radius: var(--radius); margin-bottom: .4rem; }
+.strip-card-img img { height: 150px; width: 100%; object-fit: cover; transition: transform .3s; }
+.strip-card:hover .strip-card-img img { transform: scale(1.04); }
+.strip-card-body h4 {
+  font-size: .85rem; font-weight: 700; line-height: 1.4; color: var(--dark);
+}
+.strip-card:hover .strip-card-body h4 { color: var(--red); }
+
+/* Col 3: text-only */
+.strip-col-3 .strip-list li:first-child { border-top: none; }
 
 /* ============================================================
    SECTION PAGE
@@ -222,6 +272,8 @@ img { display: block; width: 100%; height: auto; object-fit: cover; }
 @media (max-width: 1024px) {
   .card-grid--4 { grid-template-columns: repeat(3, 1fr); }
   .top-stories { grid-template-columns: 1fr 1fr; }
+  .strip-cols { grid-template-columns: 1fr 1fr; }
+  .strip-col-3 { display: none; }
 }
 
 @media (max-width: 768px) {
@@ -234,6 +286,9 @@ img { display: block; width: 100%; height: auto; object-fit: cover; }
   .article-sidebar { display: none; }
   .article-headline { font-size: 1.45rem; }
   .footer-inner { grid-template-columns: 1fr; gap: 1.25rem; }
+  .strip-cols { grid-template-columns: 1fr; }
+  .strip-col-2 { display: none; }
+  .strip-col-3 { display: none; }
 }
 
 @media (max-width: 480px) {

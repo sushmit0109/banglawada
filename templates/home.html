@@ -24,18 +24,18 @@
   </div>
   {% if secondary %}
   <div class="top-secondary">
-    {% for s in secondary[:4] %}
+    {% for s in secondary[:5] %}
     <a href="{{ base_url }}article/{{ s.slug }}/" class="top-side-card">
-      {% if s._image_url %}
-      <div class="top-side-img">
-        <img src="{{ s._image_url }}" alt="{{ s.bn_headline }}" loading="lazy">
-      </div>
-      {% endif %}
       <div class="top-side-body">
         {% if s.bn_section %}<span class="label label--sm">{{ s.bn_section }}</span>{% endif %}
         <h3>{{ s.bn_headline }}</h3>
         <span class="meta">{{ s.bn_date }}</span>
       </div>
+      {% if s._image_url %}
+      <div class="top-side-img">
+        <img src="{{ s._image_url }}" alt="{{ s.bn_headline }}" loading="lazy">
+      </div>
+      {% endif %}
     </a>
     {% endfor %}
   </div>
@@ -51,20 +51,63 @@
     <h2><a href="{{ base_url }}{{ block.slug }}/">{{ block.bn }}</a></h2>
     <a href="{{ base_url }}{{ block.slug }}/" class="see-all">সব দেখুন</a>
   </div>
-  <div class="card-grid card-grid--4">
-    {% for s in block.stories[:4] %}
-    <a href="{{ base_url }}article/{{ s.slug }}/" class="card">
-      {% if s._image_url %}
-      <div class="card-img-wrap">
-        <img src="{{ s._image_url }}" alt="{{ s.bn_headline }}" loading="lazy">
-      </div>
+  <div class="strip-cols">
+
+    <!-- Col 1: Featured card + text list -->
+    <div class="strip-col strip-col-1">
+      {% set s0 = block.stories[0] %}
+      <a href="{{ base_url }}article/{{ s0.slug }}/" class="strip-lead">
+        {% if s0._image_url %}
+        <div class="strip-lead-img">
+          <img src="{{ s0._image_url }}" alt="{{ s0.bn_headline }}" loading="lazy">
+        </div>
+        {% endif %}
+        <div class="strip-lead-body">
+          <h3>{{ s0.bn_headline }}</h3>
+          <span class="meta">{{ s0.bn_date }}</span>
+        </div>
+      </a>
+      {% if block.stories|length > 1 %}
+      <ul class="strip-list">
+        {% for s in block.stories[1:5] %}
+        <li>
+          <a href="{{ base_url }}article/{{ s.slug }}/">{{ s.bn_headline }}</a>
+          <span class="meta">{{ s.bn_date }}</span>
+        </li>
+        {% endfor %}
+      </ul>
       {% endif %}
-      <div class="card-body">
-        <h3 class="card-headline">{{ s.bn_headline }}</h3>
-        <span class="meta">{{ s.bn_date }}</span>
-      </div>
-    </a>
-    {% endfor %}
+    </div>
+
+    <!-- Col 2: Two medium cards -->
+    <div class="strip-col strip-col-2">
+      {% for s in block.stories[5:7] %}
+      <a href="{{ base_url }}article/{{ s.slug }}/" class="strip-card">
+        {% if s._image_url %}
+        <div class="strip-card-img">
+          <img src="{{ s._image_url }}" alt="{{ s.bn_headline }}" loading="lazy">
+        </div>
+        {% endif %}
+        <div class="strip-card-body">
+          <h4>{{ s.bn_headline }}</h4>
+          <span class="meta">{{ s.bn_date }}</span>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+
+    <!-- Col 3: Text-only list -->
+    <div class="strip-col strip-col-3">
+      <ul class="strip-list">
+        {% for s in block.stories[7:13] %}
+        <li>
+          <a href="{{ base_url }}article/{{ s.slug }}/">{{ s.bn_headline }}</a>
+          <span class="meta">{{ s.bn_date }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
   </div>
 </section>
 {% endif %}
