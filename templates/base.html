@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="bn" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}বাংলাওয়াদা{% endblock %} | ডেইলি ওয়াদার বাংলা সংস্করণ</title>
+  <meta name="description" content="{% block meta_desc %}ডেইলি ওয়াদার খবর বাংলায় — Bangladesh, Politics, Business, Sports এবং আরও অনেক কিছু।{% endblock %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="container top-bar-inner">
+      <span class="top-date">{{ last_updated }}</span>
+      <span class="top-source">মূল সূত্র: <a href="https://www.dailywaadaa.com" target="_blank" rel="noopener">Daily Waadaa</a></span>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/" class="logo">
+        <span class="logo-main">বাংলাওয়াদা</span>
+        <span class="logo-sub">বাংলাদেশের খবর বাংলায়</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- NAV -->
+  <nav class="main-nav">
+    <div class="container">
+      <ul class="nav-list">
+        <li><a href="/" {% if request_path is defined and request_path == '/' %}class="active"{% endif %}>সর্বশেষ</a></li>
+        {% for sec in all_sections %}
+        <li><a href="/{{ sec.slug }}/">{{ sec.bn }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="site-main">
+    <div class="container">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <strong>বাংলাওয়াদা</strong>
+        <p>ডেইলি ওয়াদার খবর বাংলায় — পাঠকদের জন্য, পাঠকদের দ্বারা।</p>
+      </div>
+      <div class="footer-sections">
+        {% for sec in all_sections %}
+        <a href="/{{ sec.slug }}/">{{ sec.bn }}</a>
+        {% endfor %}
+      </div>
+      <div class="footer-credit">
+        <p>সমস্ত বিষয়বস্তুর মূল স্বত্ব <a href="https://www.dailywaadaa.com" target="_blank" rel="noopener">Daily Waadaa</a>-এর।
+        এটি একটি স্বয়ংক্রিয় বাংলা অনুবাদ সংস্করণ।</p>
+        <p class="footer-update">সর্বশেষ আপডেট: {{ last_updated }}</p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

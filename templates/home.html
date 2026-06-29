@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}সর্বশেষ খবর{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+{% if featured %}
+{% set h = featured[0] %}
+<section class="hero-section">
+  <a href="/article/{{ h.slug }}/" class="hero-card">
+    {% if h._image_url %}
+    <div class="hero-img-wrap">
+      <img src="{{ h._image_url }}" alt="{{ h.bn_headline }}" loading="eager">
+    </div>
+    {% endif %}
+    <div class="hero-body">
+      {% if h.bn_section %}
+      <span class="label">{{ h.bn_section }}</span>
+      {% endif %}
+      <h1 class="hero-headline">{{ h.bn_headline }}</h1>
+      {% if h.bn_subheadline %}
+      <p class="hero-sub">{{ h.bn_subheadline }}</p>
+      {% endif %}
+      <span class="meta">{{ h.bn_date }}</span>
+    </div>
+  </a>
+</section>
+{% endif %}
+
+<!-- SECONDARY GRID -->
+{% if secondary %}
+<section class="secondary-section">
+  <div class="card-grid card-grid--3">
+    {% for s in secondary %}
+    <a href="/article/{{ s.slug }}/" class="card">
+      {% if s._image_url %}
+      <div class="card-img-wrap">
+        <img src="{{ s._image_url }}" alt="{{ s.bn_headline }}" loading="lazy">
+      </div>
+      {% endif %}
+      <div class="card-body">
+        {% if s.bn_section %}<span class="label">{{ s.bn_section }}</span>{% endif %}
+        <h2 class="card-headline">{{ s.bn_headline }}</h2>
+        <span class="meta">{{ s.bn_date }}</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<div class="home-layout">
+  <!-- MAIN COLUMN: latest list -->
+  <div class="home-main">
+    {% if rest %}
+    <div class="section-header"><h3>সর্বশেষ খবর</h3></div>
+    <div class="list-feed">
+      {% for s in rest %}
+      <a href="/article/{{ s.slug }}/" class="list-card">
+        {% if s._image_url %}
+        <div class="list-img-wrap">
+          <img src="{{ s._image_url }}" alt="{{ s.bn_headline }}" loading="lazy">
+        </div>
+        {% endif %}
+        <div class="list-body">
+          {% if s.bn_section %}<span class="label">{{ s.bn_section }}</span>{% endif %}
+          <h3 class="list-headline">{{ s.bn_headline }}</h3>
+          {% if s.bn_subheadline %}<p class="list-sub">{{ s.bn_subheadline }}</p>{% endif %}
+          <span class="meta">{{ s.bn_date }}</span>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- SIDEBAR: sections -->
+  <aside class="home-sidebar">
+    {% for block in section_blocks %}
+    {% if block.stories %}
+    <div class="sidebar-block">
+      <div class="sidebar-block-header">
+        <h4><a href="/{{ block.slug }}/">{{ block.bn }}</a></h4>
+      </div>
+      <ul class="sidebar-list">
+        {% for s in block.stories[:5] %}
+        <li>
+          <a href="/article/{{ s.slug }}/">{{ s.bn_headline }}</a>
+          <span class="meta">{{ s.bn_date }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      <a href="/{{ block.slug }}/" class="more-link">আরও দেখুন →</a>
+    </div>
+    {% endif %}
+    {% endfor %}
+  </aside>
+</div>
+
+<!-- SECTION STRIPS -->
+{% for block in section_blocks %}
+{% if block.stories %}
+<section class="section-strip">
+  <div class="section-header">
+    <h2><a href="/{{ block.slug }}/">{{ block.bn }}</a></h2>
+    <a href="/{{ block.slug }}/" class="more-link">সব দেখুন</a>
+  </div>
+  <div class="card-grid card-grid--4">
+    {% for s in block.stories %}
+    <a href="/article/{{ s.slug }}/" class="card card--sm">
+      {% if s._image_url %}
+      <div class="card-img-wrap">
+        <img src="{{ s._image_url }}" alt="{{ s.bn_headline }}" loading="lazy">
+      </div>
+      {% endif %}
+      <div class="card-body">
+        <h3 class="card-headline">{{ s.bn_headline }}</h3>
+        <span class="meta">{{ s.bn_date }}</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endfor %}
+
+{% endblock %}

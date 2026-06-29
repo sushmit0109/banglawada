@@ -1,0 +1,65 @@
+name: Build & Deploy BanglaWada
+
+on:
+  # Run every 6 hours
+  schedule:
+    - cron: '0 0,6,12,18 * * *'
+  # Also allow manual trigger from GitHub Actions tab
+  workflow_dispatch:
+    inputs:
+      full_rebuild:
+        description: 'Full rebuild (re-generate all article pages)'
+        required: false
+        default: 'false'
+        type: boolean
+
+# Grant write permission to push to gh-pages
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Restore translation cache
+        uses: actions/cache@v4
+        with:
+          path: cache/translations.db
+          # Cache key includes month so it auto-rotates; restore from any recent key
+          key: translations-${{ github.run_id }}
+          restore-keys: |
+            translations-
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Build site (incremental)
+        run: |
+          if [ "${{ github.event.inputs.full_rebuild }}" = "true" ]; then
+            python build.py --full
+          else
+            python build.py
+          fi
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./output
+          publish_branch: gh-pages
+          # Keep existing article pages from previous runs
+          keep_files: true
+          commit_message: "auto: update ${{ github.run_number }} [skip ci]"

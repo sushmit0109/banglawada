@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}{{ story.bn_headline }}{% endblock %}
+{% block meta_desc %}{{ story.bn_subheadline or story.bn_headline }}{% endblock %}
+
+{% block content %}
+<div class="article-layout">
+
+  <!-- ARTICLE MAIN -->
+  <article class="article-main">
+
+    <!-- BREADCRUMB -->
+    <nav class="breadcrumb">
+      <a href="/">সর্বশেষ</a>
+      {% if story.bn_section %}
+      <span>›</span>
+      <a href="/{{ story._section_slug }}/">{{ story.bn_section }}</a>
+      {% endif %}
+    </nav>
+
+    <!-- HEADER -->
+    <header class="article-header">
+      {% if story.bn_section %}
+      <span class="label label--lg">{{ story.bn_section }}</span>
+      {% endif %}
+      <h1 class="article-headline">{{ story.bn_headline }}</h1>
+      {% if story.bn_subheadline %}
+      <p class="article-subheadline">{{ story.bn_subheadline }}</p>
+      {% endif %}
+      <div class="article-meta">
+        {% if story['author-name'] %}<span class="author">{{ story['author-name'] }}</span>{% endif %}
+        <span class="date">{{ story.bn_date }}</span>
+        <a class="original-link" href="https://www.dailywaadaa.com/{{ story.slug }}" target="_blank" rel="noopener">
+          মূল ইংরেজি পড়ুন ↗
+        </a>
+      </div>
+    </header>
+
+    <!-- HERO IMAGE -->
+    {% if story._image_url %}
+    <figure class="article-hero-img">
+      <img src="{{ story._image_url }}" alt="{{ story.bn_headline }}" loading="eager">
+    </figure>
+    {% endif %}
+
+    <!-- BODY -->
+    <div class="article-body">
+      {% for card in story.bn_cards %}
+      {% for elem in card['story-elements'] %}
+
+        {% if elem.type == 'text' %}
+          <div class="article-text">{{ elem.bn_html | safe }}</div>
+
+        {% elif elem.type == 'title' %}
+          <h2 class="article-section-title">{{ elem.bn_text }}</h2>
+
+        {% elif elem.type == 'summary' %}
+          <p class="article-summary">{{ elem.bn_text }}</p>
+
+        {% elif elem.type == 'bigfact' %}
+          <div class="bigfact">
+            {% if elem.bn_label %}<span class="bigfact-label">{{ elem.bn_label }}</span>{% endif %}
+            <p class="bigfact-text">{{ elem.bn_text }}</p>
+          </div>
+
+        {% elif elem.type == 'blockquote' %}
+          <blockquote class="article-quote">
+            <p>{{ elem.bn_text }}</p>
+            {% if elem.bn_attribution %}
+            <cite>— {{ elem.bn_attribution }}</cite>
+            {% endif %}
+          </blockquote>
+
+        {% elif elem.type == 'image' %}
+          {% if elem._image_url %}
+          <figure class="article-inline-img">
+            <img src="{{ elem._image_url }}" alt="{{ elem.bn_title or '' }}" loading="lazy">
+            {% if elem.bn_title %}<figcaption>{{ elem.bn_title }}</figcaption>{% endif %}
+          </figure>
+          {% endif %}
+
+        {% elif elem.type == 'youtube-video' %}
+          {% if elem.url %}
+          <div class="video-wrap">
+            <iframe src="https://www.youtube.com/embed/{{ elem.url | replace('https://www.youtube.com/watch?v=', '') | replace('https://youtu.be/', '') }}"
+              frameborder="0" allowfullscreen loading="lazy"></iframe>
+          </div>
+          {% endif %}
+
+        {% endif %}
+
+      {% endfor %}
+      {% endfor %}
+    </div>
+
+    <!-- ATTRIBUTION -->
+    <div class="article-attribution">
+      <p>এই নিবন্ধটি <a href="https://www.dailywaadaa.com/{{ story.slug }}" target="_blank" rel="noopener">Daily Waadaa</a>
+      থেকে স্বয়ংক্রিয়ভাবে বাংলায় অনুবাদ করা হয়েছে। মূল কন্টেন্টের স্বত্ব Daily Waadaa-এর।</p>
+    </div>
+
+  </article>
+
+  <!-- SIDEBAR -->
+  <aside class="article-sidebar">
+    <div class="sidebar-block">
+      <div class="sidebar-block-header"><h4>বিভাগ</h4></div>
+      <ul class="sidebar-list">
+        {% for sec in all_sections %}
+        <li><a href="/{{ sec.slug }}/">{{ sec.bn }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </aside>
+
+</div>
+{% endblock %}
