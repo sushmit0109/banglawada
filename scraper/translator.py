@@ -56,32 +56,38 @@ class Translator:
             if not text or not str(text).strip():
                 results[i] = text
                 continue
-            key = hashlib.md5(str(text).encode()).hexdigest()
+            clean = str(text).strip()
+            key = hashlib.md5(clean.encode()).hexdigest()
             cached = self._get(key)
             if cached is not None:
                 results[i] = cached
             else:
-                uncached.append((i, text))
+                uncached.append((i, clean))
 
         if uncached:
             batch_texts = [t for _, t in uncached]
             translated = self._claude_translate_batch(batch_texts)
             for (orig_i, orig_text), trans in zip(uncached, translated):
                 results[orig_i] = trans
-                key = hashlib.md5(str(orig_text).encode()).hexdigest()
-                self._set(key, trans)
+                # Don't cache if translation equals original (failed batch item — retry next run)
+                if trans and trans.strip() != orig_text:
+                    key = hashlib.md5(orig_text.encode()).hexdigest()
+                    self._set(key, trans)
 
         return [r if r is not None else t for r, t in zip(results, texts)]
 
     def translate(self, text: str) -> str:
         if not text or not text.strip():
             return text
-        key = hashlib.md5(text.encode()).hexdigest()
+        clean = text.strip()
+        key = hashlib.md5(clean.encode()).hexdigest()
         cached = self._get(key)
         if cached is not None:
             return cached
-        result = self._claude_translate(text) if self.use_claude else self._google_translate(text)
-        self._set(key, result)
+        result = self._claude_translate(clean) if self.use_claude else self._google_translate(clean)
+        # Don't cache if translation came back as the original (failed/proper noun retry OK)
+        if result and result.strip() != clean:
+            self._set(key, result)
         return result
 
     def translate_html(self, html: str) -> str:
@@ -169,8 +175,34 @@ class Translator:
             time.sleep(2 * (attempt + 1))
         return html
 
+    _MAX_BATCH_CHARS = 3000  # max total input chars per Claude call
+
     def _claude_translate_batch(self, texts: list) -> list:
-        """Translate N strings in a single Claude subprocess call."""
+        """Translate N strings via Claude, auto-chunking if total chars are large."""
+        if not texts:
+            return []
+        # Split into chunks so no single call exceeds _MAX_BATCH_CHARS
+        chunks: list[list] = []
+        cur: list = []
+        cur_chars = 0
+        for t in texts:
+            if cur and cur_chars + len(t) > self._MAX_BATCH_CHARS:
+                chunks.append(cur)
+                cur, cur_chars = [], 0
+            cur.append(t)
+            cur_chars += len(t)
+        if cur:
+            chunks.append(cur)
+
+        results: list = []
+        offset = 0
+        for chunk in chunks:
+            results.extend(self._claude_batch_chunk(chunk, offset))
+            offset += len(chunk)
+        return results
+
+    def _claude_batch_chunk(self, texts: list, offset: int = 0) -> list:
+        """Send one chunk of texts to Claude and return translations."""
         import subprocess, re
         numbered = "\n".join(f"[{i + 1}] {t}" for i, t in enumerate(texts))
         prompt = (
@@ -185,7 +217,7 @@ class Translator:
             try:
                 result = subprocess.run(
                     ["claude", "-p", prompt],
-                    capture_output=True, text=True, timeout=180,
+                    capture_output=True, text=True, timeout=120,
                 )
                 if result.returncode == 0 and result.stdout.strip():
                     return self._parse_batch_response(result.stdout.strip(), len(texts), texts)
@@ -193,7 +225,7 @@ class Translator:
             except Exception as e:
                 print(f"[Claude batch] Attempt {attempt + 1} failed: {e}")
             time.sleep(2 * (attempt + 1))
-        return list(texts)  # fallback: return originals untranslated
+        return list(texts)
 
     @staticmethod
     def _parse_batch_response(response: str, count: int, originals: list) -> list:
