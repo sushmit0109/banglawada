@@ -6,31 +6,12 @@
 
 <div class="section-page-header">
   <h1>{{ section.bn }}</h1>
-  <p class="section-page-sub">{{ section.name }} — বাংলায় সর্বশেষ খবর</p>
+  <div class="section-page-underline"></div>
 </div>
 
 {% if stories %}
-<!-- TOP STORY -->
-{% set top = stories[0] %}
-<div class="section-top">
-  <a href="{{ base_url }}article/{{ top.slug }}/" class="hero-card hero-card--sm">
-    {% if top._image_url %}
-    <div class="hero-img-wrap">
-      <img src="{{ top._image_url }}" alt="{{ top.bn_headline }}" loading="eager">
-    </div>
-    {% endif %}
-    <div class="hero-body">
-      <h2 class="hero-headline">{{ top.bn_headline }}</h2>
-      {% if top.bn_subheadline %}<p class="hero-sub">{{ top.bn_subheadline }}</p>{% endif %}
-      <span class="meta">{{ top.bn_date }}</span>
-    </div>
-  </a>
-</div>
-
-<!-- REST AS GRID -->
-{% if stories|length > 1 %}
-<div class="card-grid card-grid--3">
-  {% for s in stories[1:] %}
+<div class="card-grid card-grid--4">
+  {% for s in stories %}
   <a href="{{ base_url }}article/{{ s.slug }}/" class="card">
     {% if s._image_url %}
     <div class="card-img-wrap">
@@ -45,8 +26,6 @@
   </a>
   {% endfor %}
 </div>
-{% endif %}
-
 {% else %}
 <p class="empty-notice">এই বিভাগে এখনও কোনো খবর নেই।</p>
 {% endif %}

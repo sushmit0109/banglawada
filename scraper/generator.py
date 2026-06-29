@@ -47,14 +47,14 @@ class SiteGenerator:
         sec_data = []
         for sec in self.sections:
             slug = sec["slug"]
+            # Use section-specific stories; show up to 4 per strip
             sec_data.append({
                 **sec,
-                "stories": [self._enrich(s) for s in section_stories.get(slug, [])[:6]],
+                "stories": [self._enrich(s) for s in section_stories.get(slug, [])[:4]],
             })
         html = self.env.get_template("home.html").render(
             featured=enriched[:1],
-            secondary=enriched[1:7],
-            rest=enriched[7:19],
+            secondary=enriched[1:5],
             section_blocks=sec_data,
         )
         (self.out / "index.html").write_text(html, encoding="utf-8")

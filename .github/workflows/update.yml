@@ -1,9 +1,9 @@
 name: Build & Deploy BanglaWada
 
 on:
-  # Run every 6 hours
+  # Run every hour
   schedule:
-    - cron: '0 0,6,12,18 * * *'
+    - cron: '0 * * * *'
   # Also allow manual trigger from GitHub Actions tab
   workflow_dispatch:
     inputs:

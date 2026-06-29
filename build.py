@@ -21,19 +21,18 @@ API_BASE   = "https://www.dailywaadaa.com/api/v1"
 IMAGE_CDN  = "https://media.assettype.com"
 OUTPUT_DIR = Path("output")
 CACHE_DB   = Path("cache/translations.db")
-# Set SITE_BASE env var when deploying to a GitHub Pages subdirectory.
-# e.g. export SITE_BASE=/banglawada/  (must start and end with /)
 SITE_BASE  = os.environ.get("SITE_BASE", "/")
 
+# Section slugs mapped to their Quintype section IDs (from /api/v1/config)
 SECTIONS = [
-    {"slug": "bangladesh", "name": "Bangladesh", "bn": "বাংলাদেশ"},
-    {"slug": "politics",   "name": "Politics",   "bn": "রাজনীতি"},
-    {"slug": "business",   "name": "Business",   "bn": "ব্যবসা"},
-    {"slug": "opinion",    "name": "Opinion",    "bn": "মতামত"},
-    {"slug": "world",      "name": "World",      "bn": "বিশ্ব"},
-    {"slug": "sports",     "name": "Sports",     "bn": "খেলাধুলা"},
-    {"slug": "lifestyle",  "name": "Lifestyle",  "bn": "জীবনধারা"},
-    {"slug": "arts",       "name": "Arts",       "bn": "শিল্পকলা"},
+    {"slug": "bangladesh", "name": "Bangladesh", "bn": "বাংলাদেশ", "id": 103182},
+    {"slug": "politics",   "name": "Politics",   "bn": "রাজনীতি",   "id": 103183},
+    {"slug": "business",   "name": "Business",   "bn": "ব্যবসা",    "id": 103200},
+    {"slug": "opinion",    "name": "Opinion",    "bn": "মতামত",     "id": 103184},
+    {"slug": "world",      "name": "World",      "bn": "বিশ্ব",     "id": 103185},
+    {"slug": "sports",     "name": "Sports",     "bn": "খেলাধুলা",  "id": 103196},
+    {"slug": "lifestyle",  "name": "Lifestyle",  "bn": "জীবনধারা",  "id": 103186},
+    {"slug": "arts",       "name": "Arts",       "bn": "শিল্পকলা",  "id": 103286},
 ]
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -41,10 +40,9 @@ SECTIONS = [
 def main():
     parser = argparse.ArgumentParser(description="BanglaWada static site builder")
     parser.add_argument("--full",  action="store_true", help="Rebuild all article pages")
-    parser.add_argument("--limit", type=int, default=30, help="Stories per section (default 30)")
+    parser.add_argument("--limit", type=int, default=20, help="Stories per section (default 20)")
     args = parser.parse_args()
 
-    # Ensure directories exist
     OUTPUT_DIR.mkdir(exist_ok=True)
     (OUTPUT_DIR / "static").mkdir(exist_ok=True)
     Path("cache").mkdir(exist_ok=True)
@@ -53,23 +51,23 @@ def main():
     from scraper.translator import Translator
     from scraper.generator  import SiteGenerator
 
-    api       = QuintypeAPI(API_BASE, IMAGE_CDN)
+    api        = QuintypeAPI(API_BASE, IMAGE_CDN)
     translator = Translator(CACHE_DB)
     generator  = SiteGenerator(OUTPUT_DIR, translator, IMAGE_CDN, SECTIONS, SITE_BASE)
 
-    # ── 1. Fetch latest stories for homepage ──────────────────────────────────
+    # ── 1. Fetch global latest stories for homepage hero/secondary ────────────
     print(f"[build] Fetching latest {args.limit} stories …")
     home_stories = api.get_stories(limit=args.limit)
     if not home_stories:
         print("[build] ERROR: Could not fetch any stories. Aborting.", file=sys.stderr)
         sys.exit(1)
 
-    # ── 2. Fetch per-section stories ──────────────────────────────────────────
+    # ── 2. Fetch section-specific stories using section-id ────────────────────
     section_stories: dict[str, list] = {}
     for sec in SECTIONS:
-        print(f"[build] Fetching section: {sec['name']} …")
+        print(f"[build] Fetching section: {sec['name']} (id={sec['id']}) …")
         section_stories[sec["slug"]] = api.get_stories(
-            limit=20, section=sec["slug"]
+            limit=args.limit, section_id=sec["id"]
         )
 
     # ── 3. Generate homepage ──────────────────────────────────────────────────
@@ -81,7 +79,7 @@ def main():
         print(f"[build] Generating section page: {sec['name']} …")
         generator.generate_section(sec, section_stories.get(sec["slug"], []))
 
-    # ── 5. Generate individual article pages ─────────────────────────────────
+    # ── 5. Generate article pages (incremental) ───────────────────────────────
     seen_ids: set[str] = set()
     all_stories = list(home_stories)
     for stories in section_stories.values():
@@ -99,7 +97,7 @@ def main():
             skipped += 1
             continue
 
-        print(f"[build] Article: {story.get('headline', sid)[:60]} …")
+        print(f"[build] Article: {story.get('headline', sid)[:65]} …")
         full = api.get_story(sid)
         if full:
             try:
