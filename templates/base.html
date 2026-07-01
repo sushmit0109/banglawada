@@ -28,6 +28,14 @@
         <span class="logo-main">বাংলাওয়াদা</span>
         <span class="logo-sub">বাংলাদেশের খবর বাংলায়</span>
       </a>
+      <!-- Local Weather -->
+      <div class="local-weather" id="local-weather" aria-live="polite" hidden>
+        <span class="weather-icon" id="weather-icon" aria-hidden="true"></span>
+        <span class="weather-details">
+          <strong id="weather-temperature"></strong>
+          <span id="weather-location"></span>
+        </span>
+      </div>
     </div>
   </header>
 
@@ -70,5 +78,6 @@
     </div>
   </footer>
 
+  <script src="{{ base_url }}static/weather.js" defer></script>
 </body>
 </html>
