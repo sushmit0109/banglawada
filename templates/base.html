@@ -16,7 +16,7 @@
   <!-- TOP BAR -->
   <div class="top-bar">
     <div class="container top-bar-inner">
-      <span class="top-date">{{ last_updated }}</span>
+      <span class="top-date local-time" data-utc-time="{{ last_updated_iso }}">{{ last_updated }}</span>
       <span class="top-source">মূল সূত্র: <a href="https://www.dailywaadaa.com" target="_blank" rel="noopener">Daily Waadaa</a></span>
     </div>
   </div>
@@ -28,7 +28,6 @@
         <span class="logo-main">বাংলাওয়াদা</span>
         <span class="logo-sub">বাংলাদেশের খবর বাংলায়</span>
       </a>
-      <!-- Local Weather -->
       <div class="local-weather" id="local-weather" aria-live="polite" hidden>
         <span class="weather-icon" id="weather-icon" aria-hidden="true"></span>
         <span class="weather-details">
@@ -73,11 +72,12 @@
       <div class="footer-credit">
         <p>সমস্ত বিষয়বস্তুর মূল স্বত্ব <a href="https://www.dailywaadaa.com" target="_blank" rel="noopener">Daily Waadaa</a>-এর।
         এটি একটি স্বয়ংক্রিয় বাংলা অনুবাদ সংস্করণ।</p>
-        <p class="footer-update">সর্বশেষ আপডেট: {{ last_updated }}</p>
+        <p class="footer-update">সর্বশেষ আপডেট: <span class="local-time" data-utc-time="{{ last_updated_iso }}">{{ last_updated }}</span></p>
       </div>
     </div>
   </footer>
 
+  <script src="{{ base_url }}static/local-time.js" defer></script>
   <script src="{{ base_url }}static/weather.js" defer></script>
 </body>
 </html>

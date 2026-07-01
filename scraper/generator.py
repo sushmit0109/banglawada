@@ -31,6 +31,7 @@ class SiteGenerator:
             autoescape=True,
         )
         dt = datetime.now(timezone.utc)
+        last_updated_iso = dt.isoformat()
         bn_last_updated = (
             f"{dt.day} {BENGALI_MONTHS[dt.month - 1]} {dt.year},"
             f" {dt.hour:02d}:{dt.minute:02d} UTC"
@@ -40,6 +41,7 @@ class SiteGenerator:
             all_sections=sections,
             base_url=self.base_url,
             last_updated=bn_last_updated,
+            last_updated_iso=last_updated_iso,
         )
         self.env.filters["bn_date"] = _bn_date
 
